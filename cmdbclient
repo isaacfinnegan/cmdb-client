@@ -5,6 +5,8 @@ use CMDB::Client;
 use Getopt::Long;
 
 my ($query,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id);
+
+my ($list,$host);
 my $fieldsep="\n";
 
 my $results=GetOptions(
@@ -16,10 +18,12 @@ my $results=GetOptions(
 	"noheader" => \$noheader,
 	"nofieldname" => \$nofieldname,
 	"help" => \$help,
-	"fieldsep=s" => \$fieldsep
+	"fieldsep=s" => \$fieldsep,
+	"list" => \$list,
+	"host=s" => \$host
 	);
 	
-if($help || (!$ARGV[0] && !$query && !$cluster_id && !$customer_id))
+if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list))
 {
 	print <<EOF;
 usage:  inv [hostname|ip address] [--query=] [--fields=]
@@ -56,7 +60,35 @@ if ( $ARGV[0] =~ m/^(\d\d?\d?).(\d\d?\d?).(\d\d?\d?).(\d{1,})/ )
 
 my $q=$query ? eat_json($query) : { $key => "*$ARGV[0]*" };
 
+#ansible compat
+if($host)
+{
+	$q= {"fqdn" => $host };
+}
+if($list)
+{
+	$q= {"fqdn" => "*"};
+}
+
 my $var=&getRecs( 'system',$q );
+
+#ansible compat
+if($host)
+{
+	if(scalar(@$var))
+	{
+		print make_json($var->[0]);
+	}
+	exit;
+}
+if($list)
+{
+	my %rtn=map { $_->{'fqdn'} => $_ } @$var;
+	my $res={};
+	$res->{'_meta'}->{'hostvars'}=\%rtn;
+	print make_json($res);
+	exit;
+}
 
 if($json)
 {
