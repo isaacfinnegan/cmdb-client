@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+use lib '/opt/pptools';
+use ppenv;
+use CMDB::Client;
+use Getopt::Long;
+
+my ($query,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id);
+my $fieldsep="\n";
+
+my $results=GetOptions(
+	"query=s" => \$query,
+	"customerbycluster=s" => \$cluster_id,
+	"customerbylicense=s" => \$customer_id,
+	"fields=s" => \$fields,
+	"json" => \$json,
+	"noheader" => \$noheader,
+	"nofieldname" => \$nofieldname,
+	"help" => \$help,
+	"fieldsep=s" => \$fieldsep
+	);
+	
+if($help || (!$ARGV[0] && !$query && !$cluster_id && !$customer_id))
+{
+	print <<EOF;
+usage:  inv [hostname|ip address] [--query=] [--fields=]
+	where
+		--query = json query string (supercedes hostname param)
+		--fields = comma sep fieldlist
+		--customerbycluster = cluster CID
+		--customerbylicense = customer license key
+		--noheader   does not display header for each result
+		--nofieldname   just returns values without field label
+		--json 		print results in JSON format
+		--fieldsep	field separater, defaults to newline
+		--help   prints this message
+EOF
+	exit;
+}
+if($cluster_id || $customer_id)
+{
+	my $cust=$cluster_id ? &getCustomer({cluster_id=>$cluster_id}) : &getCustomer({customer_id=>$customer_id});
+	my @fieldloop= $fields ? ('sid','customer_id','customer_name') : ('sid','customer_id','customer_name');
+	foreach my $f (@fieldloop)
+	{
+		print "$f : " unless $nofieldname;
+		print "$$cust{$f}\n";
+	}
+	exit;
+}
+my $key = 'fqdn';
+
+if ( $ARGV[0] =~ m/^(\d\d?\d?).(\d\d?\d?).(\d\d?\d?).(\d{1,})/ )
+{
+	$key = 'ip_address';
+}
+
+my $q=$query ? eat_json($query) : { $key => "*$ARGV[0]*" };
+
+my $var=&getRecs( 'system',$q );
+
+if($json)
+{
+	print make_json($var);
+	exit;
+}
+
+print "### Found " . scalar(@$var) . " systems.\n" unless $noheader;
+foreach my $s (@$var)
+{
+	print "### System: $$s{'fqdn'} ###\n" unless $noheader;
+	
+	my @fieldloop= $fields ? split(',',$fields) : keys(%$s);
+	if ($json)
+	{
+		print make_json({ map { ($_, $s->{$_}) } @fieldloop }), "\n";
+	}
+	elsif (!$nofieldname)
+	{
+		printf "%s : %s\n", $_, $s->{$_} for (@fieldloop);
+	}
+	else
+	{
+		printf "%s\n", join($fieldsep, map { $s->{$_} } @fieldloop);
+	}
+}
