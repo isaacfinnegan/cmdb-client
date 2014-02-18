@@ -5,4 +5,5 @@ Section: Miscellaneous
 Priority: optional
 Maintainer: Isaac Finnegan <isaacfinnegan@gmail.com>
 Description: This package is the cmdb-client build
+Depends: perl, libjson-perl
 
