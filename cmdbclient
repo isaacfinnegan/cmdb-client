@@ -26,7 +26,7 @@ my $results=GetOptions(
 if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list))
 {
 	print <<EOF;
-usage:  inv [hostname|ip address] [--query=] [--fields=]
+usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 	where
 		--query = json query string (supercedes hostname param)
 		--fields = comma sep fieldlist
@@ -83,8 +83,10 @@ if($host)
 }
 if($list)
 {
-	my %rtn=map { $_->{'fqdn'} => $_ } @$var;
 	my $res={};
+	my @hosts = map { $_->{'fqdn'} } @$var;
+	my %rtn=map { $_->{'fqdn'} => $_ } @$var;
+	$res->{'allhosts'}=\@hosts;
 	$res->{'_meta'}->{'hostvars'}=\%rtn;
 	print make_json($res);
 	exit;
