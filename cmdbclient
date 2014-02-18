@@ -84,10 +84,23 @@ if($host)
 if($list)
 {
 	my $res={};
-	my @hosts = map { $_->{'fqdn'} } @$var;
-	my %rtn=map { $_->{'fqdn'} => $_ } @$var;
-	$res->{'allhosts'}=\@hosts;
-	$res->{'_meta'}->{'hostvars'}=\%rtn;
+	$res->{'allhosts'} = [];
+	foreach my $system (@$var)
+	{
+		push(@{$res->{'allhosts'}}, $system->{'fqdn'});
+		$res->{'_meta'}->{'hostvars'}->{$system->{'fqdn'}}=$system;
+		if(length($system->{'roles'}) > 2)
+		{
+			foreach my $role (split(',',$system->{'roles'}))
+			{
+				if(!$res->{$role})
+				{
+					$res->{$role}=[];
+				}
+				push(@{$res->{$role}},$system->{'fqdn'});
+			}
+		}
+	}
 	print make_json($res);
 	exit;
 }
