@@ -1,6 +1,6 @@
 NAME=cmdb-client
 VERSION=1.1
-RELEASE=1
+RELEASE=2
 SOURCE=$(NAME)-$(VERSION).tar.gz
 EXES=cmdbclient
 LIBS=CMDB
