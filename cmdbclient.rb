@@ -1,6 +1,7 @@
 #!ruby
 
 require 'net/http'
+require 'net/https'
 require 'rubygems'
 require 'json'
 
@@ -69,7 +70,7 @@ class CMDBclient::Real < CMDBclient
         url.path = rtrim(url.path) + '/' + ltrim(rel_uri)
         url.query = opt[:query] if opt.has_key? :query
         self.dbg("#{method.inspect} => #{url.to_s}")
-        http = Net::HTTP.new(url.host, url.port)
+        http = Net::HTTP.new(url.host, url.port, :use_ssl => url.scheme == 'https')
         reqclass = case method
                    when :GET
                        Net::HTTP::Get
