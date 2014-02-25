@@ -65,7 +65,7 @@ class CMDBclient::Real < CMDBclient
         end
         method ||= :GET
         rel_uri = opt[method]
-        url = URI.parse(@opt['inventory']['url'])
+        url = URI.parse(@opt['cmdb']['url'])
         url.path = rtrim(url.path) + '/' + ltrim(rel_uri)
         url.query = opt[:query] if opt.has_key? :query
         self.dbg("#{method.inspect} => #{url.to_s}")
@@ -78,15 +78,15 @@ class CMDBclient::Real < CMDBclient
                    end
         request = reqclass.new(url.request_uri)
         self.dbg request.to_s
-        if @opt['inventory'].has_key? 'username'
-            request.basic_auth(@opt['inventory']['username'],
-                          @opt['inventory']['password'])
+        if @opt['cmdb'].has_key? 'username'
+            request.basic_auth(@opt['cmdb']['username'],
+                          @opt['cmdb']['password'])
         end
         request.body = opt[:body].to_json if opt.has_key? :body
         response = http.request(request)
         self.dbg response.to_s
         if response.code[0] != ?2
-            raise "Error making inventory request (#{response.code}): " +
+            raise "Error making cmdb request (#{response.code}): " +
                 error_body(response.body)
         end
 
