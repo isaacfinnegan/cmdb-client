@@ -30,11 +30,13 @@ use Optconfig;
 my @savedARGV=@ARGV;
 @ARGV=[];
     my $opt = Optconfig->new('cmdbclient', { 'cmdbclient-http=s' => 'https',
-                                      'cmdbclient-host=s' => 'cmdb.example.com',
+                                      'cmdbclient-host=s' => 'cmdb',
                                       'cmdbclient-realm=s' => 'Authorized Access Only',
                                       'cmdbclient-api_path=s' => '/cmdb_api/v1/',
                                       'cmdbclient-debug' => 0,
-                                      'cmdbclient-timeout' => 320
+                                      'cmdbclient-timeout' => 320,
+                                      'cmdbclient-user=s' => 'readonly',
+                                      'cmdbclient-pass=s' => 'readonly'
                                    });
 
 @ARGV=@savedARGV;
@@ -136,8 +138,8 @@ sub getRecords{
 	#$query=~s/\*/\%/g;
 	print STDERR "fetching: $url$query\n" if $DEBUG;
 	my $port= $http eq 'http' ? '80' : '443';
-	my $user= 'readonly';
-	my $pass= 'readonly';
+	my $user= $opt->{'cmdbclient-user'};
+	my $pass= $opt->{'cmdbclient-pass'};
 	$ua->credentials("$host:$port",'Authorized Personnel Only',$user,$pass);
 	my $response = $ua->get( "$url$query" );
     if ( $response->code == 200 ) {
@@ -209,8 +211,8 @@ sub getRecs{
 	my $port= $http_method eq 'http' ? '80' : '443';
 	my $path=$config->{'path'} || $api_path;
     my $realm= $config->{'realm'} || $opt->{'cmdbclient-realm'};
-	my $user=$config->{'user'} || 'readonly';
-	my $pass=$config->{'pass'} || 'readonly';
+	my $user=$config->{'user'} || $opt->{'cmdbclient-user'};
+	my $pass=$config->{'pass'} || $opt->{'cmdbclient-pass'};
 	$ua->credentials("$hostname:$port",$realm,$user,$pass);
 	my $url = "$http_method://$hostname$path$entity/";
 	my $results;
@@ -291,8 +293,8 @@ sub saveRec{
 	my $port= $http_method eq 'http' ? '80' : '443';
 	my $path=$config->{'path'} || $api_path;
 	my $realm=$config->{'realm'} || $opt->{'cmdbclient-realm'};
-	my $user=$config->{'user'} || 'readonly';
-	my $pass=$config->{'pass'} || 'readonly';
+	my $user=$config->{'user'} || $opt->{'cmdbclient-user'};
+	my $pass=$config->{'pass'} || $opt->{'cmdbclient-pass'};
 	my $key=$config->{'key'} || $entity_keys->{$entity};
 	my $json=make_json($rec);
 	$rec_key=$rec_key || $rec->{$key};
