@@ -1,6 +1,4 @@
 #!/usr/bin/perl
-use lib '/opt/pptools';
-use ppenv;
 use CMDB::Client;
 use Getopt::Long;
 
