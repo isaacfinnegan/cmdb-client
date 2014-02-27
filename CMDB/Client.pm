@@ -36,7 +36,8 @@ my @savedARGV=@ARGV;
                                       'cmdbclient-debug' => 0,
                                       'cmdbclient-timeout' => 320,
                                       'cmdbclient-user=s' => 'readonly',
-                                      'cmdbclient-pass=s' => 'readonly'
+                                      'cmdbclient-pass=s' => 'readonly',
+                                      'cmdbclient-environment=s' => 'production'
                                    });
 
 @ARGV=@savedARGV;
@@ -203,6 +204,8 @@ The configuration hashref is optional for getRecs but can contain the following 
 
 sub getRecs{
 	my($entity,$qparms,$config)=@_;
+    my $environment=$config->{'environment'} || $opt->{'cmdbclient-environment'};
+    $entity="environments/$environment/services" if $entity eq 'services';
 	$config=$config || {};
 	my $query_str="?_format=";
 	$query_str.= $config->{'format'} || 'json';

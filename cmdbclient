@@ -82,10 +82,10 @@ if($host)
 if($list)
 {
 	my $res={};
-	$res->{'allhosts'} = [];
+	$res->{'allhosts'}->{'hosts'} = [];
 	foreach my $system (@$var)
 	{
-		push(@{$res->{'allhosts'}}, $system->{'fqdn'});
+		push(@{$res->{'allhosts'}->{'hosts'}}, $system->{'fqdn'});
 		$res->{'_meta'}->{'hostvars'}->{$system->{'fqdn'}}=$system;
 		if(length($system->{'roles'}) > 2)
 		{
@@ -99,6 +99,10 @@ if($list)
 			}
 		}
 	}
+	print STDERR "doing svc lookup\n";
+	my $svcs_lkup=&getRecs('services');
+	my %svcs=map { $_->{'name'}=>$_ } @{$svcs_lkup};
+	$res->{'allhosts'}->{'vars'}->{'services'}=\%svcs;
 	print make_json($res);
 	exit;
 }
