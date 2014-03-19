@@ -2,7 +2,7 @@
 use CMDB::Client;
 use Getopt::Long;
 
-my ($query,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id);
+my ($query,$hl,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id,$tag,$role);
 
 my ($list,$host);
 my $fieldsep="\n";
@@ -13,20 +13,31 @@ my $results=GetOptions(
 	"customerbylicense=s" => \$customer_id,
 	"fields=s" => \$fields,
 	"json" => \$json,
+	"hl" => \$hl,
 	"noheader" => \$noheader,
 	"nofieldname" => \$nofieldname,
 	"help" => \$help,
 	"fieldsep=s" => \$fieldsep,
 	"list" => \$list,
-	"host=s" => \$host
+	"host=s" => \$host,
+	"tag=s" => \$tag,
+	"role=s" => \$role
 	);
 	
-if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list))
+if($hl)
+{
+	$nofieldname=1;
+	$noheader=1;
+	$fields='fqdn';
+}
+
+if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list && !$role && !$tag))
 {
 	print <<EOF;
 usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 	where
 		--query = json query string (supercedes hostname param)
+		--hl = hostlist output (shortcut for noheader,nofieldname,fields=fqdn)
 		--fields = comma sep fieldlist
 		--customerbycluster = cluster CID
 		--customerbylicense = customer license key
@@ -34,6 +45,8 @@ usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 		--nofieldname   just returns values without field label
 		--json 		print results in JSON format
 		--fieldsep	field separater, defaults to newline
+		--role query for role  (roles field query)
+		--tag query for tag (tags field query)
 		--help   prints this message
 EOF
 	exit;
@@ -58,6 +71,15 @@ if ( $ARGV[0] =~ m/^(\d\d?\d?).(\d\d?\d?).(\d\d?\d?).(\d{1,})/ )
 
 my $q=$query ? eat_json($query) : { $key => "*$ARGV[0]*" };
 
+if($tag)
+{
+	$q= { tags => $tag };
+}
+if($role)
+{
+	$q= { roles => $role };
+}
+
 #ansible compat
 if($host)
 {
@@ -70,7 +92,7 @@ if($list)
 
 my $var=&getRecs( 'system',$q );
 
-#ansible compat
+#ansible output formatting
 if($host)
 {
 	if(scalar(@$var))
