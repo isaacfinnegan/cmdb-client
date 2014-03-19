@@ -2,7 +2,7 @@
 use CMDB::Client;
 use Getopt::Long;
 
-my ($query,$hl,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id,$tag,$role);
+my ($query,$hl,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id,$tag,$role,$status);
 
 my ($list,$host);
 my $fieldsep="\n";
@@ -21,7 +21,8 @@ my $results=GetOptions(
 	"list" => \$list,
 	"host=s" => \$host,
 	"tag=s" => \$tag,
-	"role=s" => \$role
+	"role=s" => \$role,
+	"status=s" => \$status
 	);
 	
 if($hl)
@@ -31,7 +32,7 @@ if($hl)
 	$fields='fqdn';
 }
 
-if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list && !$role && !$tag))
+if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list && !$role && !$tag && !$status))
 {
 	print <<EOF;
 usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
@@ -47,6 +48,7 @@ usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 		--fieldsep	field separater, defaults to newline
 		--role query for role  (roles field query)
 		--tag query for tag (tags field query)
+		--status query for status
 		--help   prints this message
 EOF
 	exit;
@@ -69,15 +71,36 @@ if ( $ARGV[0] =~ m/^(\d\d?\d?).(\d\d?\d?).(\d\d?\d?).(\d{1,})/ )
 	$key = 'ip_address';
 }
 
-my $q=$query ? eat_json($query) : { $key => "*$ARGV[0]*" };
+my $q=[];
 
+if($ARGV[0])
+{
+  push($q,"$key=*$ARGV[0]*");	
+}
 if($tag)
 {
-	$q= { tags => $tag };
+	push($q, "tags=$tag");
 }
 if($role)
 {
-	$q= { roles => $role };
+	push($q, "roles=$role");
+}
+if($status)
+{
+	if($status=~m/!/)
+	{
+		$status=~s/!//g;
+		push($q, "status!=$status");
+	}
+	else
+	{
+		push($q, "status=$status");
+	}
+}
+
+if($query)
+{
+ $q=eat_json($query)
 }
 
 #ansible compat
