@@ -75,26 +75,26 @@ my $q=[];
 
 if($ARGV[0])
 {
-  push($q,"$key=*$ARGV[0]*");	
+  push(@$q,"$key=*$ARGV[0]*");	
 }
 if($tag)
 {
-	push($q, "tags=$tag");
+	push(@$q, "tags=$tag");
 }
 if($role)
 {
-	push($q, "roles=$role");
+	push(@$q, "roles=$role");
 }
 if($status)
 {
 	if($status=~m/!/)
 	{
 		$status=~s/!//g;
-		push($q, "status!=$status");
+		push(@$q, "status!=$status");
 	}
 	else
 	{
-		push($q, "status=$status");
+		push(@$q, "status=$status");
 	}
 }
 
