@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use CMDB::Client;
-use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromString GetOptions);
 
 my ($query,$hl,$fields,$help,$noheader,$nofieldname,$cluster_id,$customer_id,$tag,$role,$status);
 
@@ -24,6 +24,27 @@ my $results=GetOptions(
 	"role=s" => \$role,
 	"status=s" => \$status
 	);
+
+if($ENV{CMDBCLIENT_OPTS})
+{
+	my $results=GetOptionsFromString( $ENV{CMDBCLIENT_OPTS}, 
+	"query=s" => \$query,
+	"customerbycluster=s" => \$cluster_id,
+	"customerbylicense=s" => \$customer_id,
+	"fields=s" => \$fields,
+	"json" => \$json,
+	"hl" => \$hl,
+	"noheader" => \$noheader,
+	"nofieldname" => \$nofieldname,
+	"help" => \$help,
+	"fieldsep=s" => \$fieldsep,
+	"list" => \$list,
+	"host=s" => \$host,
+	"tag=s" => \$tag,
+	"role=s" => \$role,
+	"status=s" => \$status
+	);
+}
 	
 if($hl)
 {
@@ -37,11 +58,9 @@ if($help || (!$ARGV[0] && !$query && !$cluster_id && !$host && !$list && !$role 
 	print <<EOF;
 usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 	where
-		--query = json query string (supercedes hostname param)
+		--query = string containg json encoded query (supercedes hostname param)
 		--hl = hostlist output (shortcut for noheader,nofieldname,fields=fqdn)
 		--fields = comma sep fieldlist
-		--customerbycluster = cluster CID
-		--customerbylicense = customer license key
 		--noheader   does not display header for each result
 		--nofieldname   just returns values without field label
 		--json 		print results in JSON format
@@ -50,6 +69,8 @@ usage:  cmdbclient [hostname|ip address] [--query=] [--fields=]
 		--tag query for tag (tags field query)
 		--status query for status
 		--help   prints this message
+
+		PROTIP: these options can also be specified in the CMDBCLIENT_OPTS environment variable
 EOF
 	exit;
 }
@@ -108,7 +129,7 @@ if($host)
 {
 	$q= {"fqdn" => $host };
 }
-if($list)
+if($list && !$query)
 {
 	$q= {"fqdn" => "*"};
 }
