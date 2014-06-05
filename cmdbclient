@@ -98,11 +98,27 @@ if($ARGV[0])
 }
 if($tag)
 {
-	push(@$q, "tags=$tag");
+	if($tag=~m/!/)
+	{
+		$tag=~s/!//g;
+		push(@$q, "tags!=$tag");
+	}
+	else
+	{
+		push(@$q, "tags~$tag");
+	}
 }
 if($role)
 {
-	push(@$q, "roles=$role");
+	if($role=~m/!/)
+	{
+		$role=~s/!//g;
+		push(@$q, "roles!=$role");
+	}
+	else
+	{
+		push(@$q, "roles~$role");
+	}
 }
 if($status)
 {
@@ -113,7 +129,7 @@ if($status)
 	}
 	else
 	{
-		push(@$q, "status=$status");
+		push(@$q, "status~$status");
 	}
 }
 
