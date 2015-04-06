@@ -1,0 +1,6 @@
+# Building the Debian package for cmdb-client
+
+The Makefile for building a dpkg is included in this repo and can be built by running 'make'.  The Makefile depends on the the build tools being installed where make runs.  See https://evernote.jira.com/wiki/display/OPS/Building+and+Packaging#BuildingandPackaging-BuildTools(deprecated)
+
+The package can be promoted by running the command 'make promote' with the repo sepecified, example:
+    APT_REPO=repo.osde.enops.net make install
